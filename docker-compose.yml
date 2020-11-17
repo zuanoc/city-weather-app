@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
+    networks:
+      - webappnetwork
+  frontend:
+    build: ./frontend
+    image: webapp-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    links:
+      - backend
+    networks:
+      - webappnetwork
+  backend:
+    build: ./backend
+    image: webapp-backend
+    environment:
+      ENV: dev
+      TEMPERATURE_LIMIT: 5
+      API_CACHE_TTL_IN_SECONDS: 5
+      WEATHER_FETCHING_INTERVAL_IN_SECONDS: 5
+      MONGO_DB_URI: mongodb://mongodb:27017/city-weather
+      MAP_SERVICE_API_KEY: 7310dbb5d30e1c019e4f8d9e5991aca4
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    networks:
+      - webappnetwork
+networks:
+  webappnetwork:
+    driver: bridge
+volumes:
+  mongodb_data_container:
